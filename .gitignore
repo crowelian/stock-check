@@ -128,3 +128,17 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+#3rd party
+public/chart.js
+public/css/uikit-rtl.css
+public/css/uikit-rtl.min.css
+public/css/uikit.css
+public/css/uikit.min.css
+public/js/uikit-icons.js
+public/js/uikit-icons.min.js
+public/js/uikit.js
+public/js/uikit.min.js
+public/loading.gif
+
+

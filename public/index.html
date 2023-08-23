@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Data</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/uikit.min.css" />
+    <script src="js/uikit.min.js"></script>
+    <script src="js/uikit-icons.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=ADLaM+Display&family=Lato:wght@100;300;400;900&display=swap"
+        rel="stylesheet">
+
+
+
+
+    <style>
+        body {
+            background-color: rgb(204, 204, 204);
+            height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'ADLaM Display', cursive;
+        }
+
+        p {
+            font-family: 'Lato', sans-serif;
+        }
+
+        /* Loading overlay styles */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        #loadingOverlay img {
+            position: relative;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #mainContainer {
+            max-width: 800px;
+            margin: auto;
+        }
+
+
+        #chartContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 800px;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+
+        #stockChart {
+            max-width: 100%;
+        }
+
+        #stockData {
+            margin-top: 1.2em;
+        }
+
+        #currPrice-label {
+            font-size: 0.6em;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        #currPrice {
+            color: red;
+            font-weight: 900;
+            font-size: 1.5em;
+        }
+
+        #changeInPrice {
+            font-weight: 400;
+        }
+
+        .success {
+            color: #36cf45;
+        }
+
+        .warning {
+            color: #ed7b11;
+        }
+
+        .danger {
+            color: #d62020;
+        }
+    </style>
+
+    <script src="chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+
+
+    <script>
+        async function fetchStockData() {
+
+            // Show loading overlay
+            document.getElementById("loadingOverlay").style.display = "block";
+
+            const symbol = document.getElementById("symbol").value;
+            const response = await fetch(`/api/stock/${symbol}`);
+            const data = await response.json();
+            console.log(data);
+
+            const currentPrice = data.regularMarketPrice;
+            const previousClosePrice = data.regularMarketPreviousClose;
+            const changeInPrice = currentPrice - previousClosePrice;
+            const percentageChange = (changeInPrice / previousClosePrice) * 100;
+
+            const changeClass = changeInPrice >= 0 ? 'success' : 'danger';
+
+            // Display some of the data
+            document.getElementById("stockData").innerHTML = `
+                <h2>${data.shortName} (${data.symbol})</h2>
+                <p ><span id="currPrice-label">Current Price:</span><br/> 
+                    <span id="currPrice">${currentPrice} ${data.currency} </span>
+                    <span id="changeInPrice" class="${changeClass}">
+                        ${changeInPrice >= 0 ? '+' : ''}${changeInPrice.toFixed(2)} 
+                        (${percentageChange >= 0 ? '+' : ''}${percentageChange.toFixed(2)}%)
+                        </span>
+                </p>
+                <p>Market Cap: ${data.marketCap}</p>
+                <p>52 Week Low: ${data.fiftyTwoWeekLow}</p>
+                <p>52 Week High: ${data.fiftyTwoWeekHigh}</p>
+            `;
+
+            // Hide loading overlay
+            document.getElementById("loadingOverlay").style.display = "none";
+        }
+
+        async function searchStock() {
+            const query = document.getElementById("searchQuery").value;
+            const response = await fetch(`/api/search/${query}`);
+            const data = await response.json();
+            console.log(data);
+
+            // Display search results (simplified)
+            const results = data.quotes.map(quote => {
+                const name = quote.shortname ? quote.shortname : `*** ${quote.name} ***`;
+                const symbol = quote.symbol ? quote.symbol : quote.permalink;
+                return `<li>${name} (${symbol})</li>`;
+            }).join("");
+            document.getElementById("searchResults").innerHTML = `<ul>${results}</ul>`;
+        }
+
+        // Sample function to draw a chart
+        function drawChart(labels, data) {
+            const symbol = document.getElementById("symbol").value;
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.map(label => moment(label)), // Convert to Moment.js objects
+                    datasets: [{
+                        label: symbol,
+                        data: data,
+                        borderColor: 'rgba(255, 0, 0, 1)',
+                        borderWidth: 9,
+                        pointBackgroundColor: 'rgba(0, 0, 0, 1)',
+                        pointBorderColor: 'rgba(255, 255, 255, 1)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                parser: 'YYYY-MM-DD' // Specify the format of the input dates
+                            }
+                        },
+                        y: {
+                            beginAtZero: false, // Set this to false if you don't want the y-axis to start at 0
+                            min: Math.min(...data) - 10, // 10 units less than the smallest data point
+                            max: Math.max(...data) + 10, // 10 units more than the largest data point
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch default stock data when the page loads
+        window.onload = function () {
+
+            fetchStockData().then(() => {
+                const symbol = document.getElementById("symbol").value;
+                fetch(`/api/historical/${symbol}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const labels = data.map(item => item.date);
+                        const prices = data.map(item => item.close);
+                        drawChart(labels, prices);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching historical data:', error);
+                    });
+            });
+        }
+
+
+
+
+
+    </script>
+
+
+</head>
+
+<body>
+    <div id="mainContainer" class="uk-container">
+
+
+        <h1>Stock Check</h1>
+
+        <div class="uk-grid-small uk-child-width-auto uk-child-width-expand@m" uk-grid>
+            <div class="uk-width-2-3">
+                <input class="uk-input" type="text" id="symbol" placeholder="Enter stock symbol" value="GIB-A.TO">
+            </div>
+            <div class="uk-width-1-3">
+                <button class="uk-button uk-button-secondary" onclick="fetchStockData()">Fetch</button>
+            </div>
+        </div>
+
+
+
+        <div id="stockData"></div>
+
+        <div id="chartContainer">
+            <canvas id="stockChart" width="600" height="300"></canvas>
+        </div>
+
+
+
+        <p>&nbsp;</p>
+        <div class="uk-grid-small uk-child-width-auto uk-child-width-expand@m" uk-grid>
+            <div class="uk-width-2-3">
+                <input class="uk-input" type="text" id="searchQuery" placeholder="Search stocks">
+            </div>
+            <div class="uk-width-1-3 uk-width-auto">
+                <button class="uk-button uk-button-secondary" onclick="searchStock()">Search</button>
+            </div>
+        </div>
+        <div id="searchResults"></div>
+
+        <!-- Loading overlay -->
+        <div id="loadingOverlay">
+            <img src="loading.gif" alt="Loading...">
+        </div>
+
+    </div>
+</body>
+
+</html>
