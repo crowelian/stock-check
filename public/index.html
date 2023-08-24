@@ -20,7 +20,7 @@
 
     <style>
         body {
-            background-color: rgb(204, 204, 204);
+            background-color: rgb(224, 224, 224);
             height: 100%;
             min-height: 100vh;
             margin: 0;
@@ -82,6 +82,10 @@
             margin-top: 1.2em;
         }
 
+        #stock-symbol-title {
+            margin-bottom: 0;
+        }
+
         #currPrice-label {
             font-size: 0.6em;
             margin-bottom: 0;
@@ -96,6 +100,21 @@
 
         #changeInPrice {
             font-weight: 400;
+        }
+
+        #priceSubText {
+            font-size: 0.7em;
+            top: -12px;
+            position: relative;
+        }
+
+        #stock-data-grid {
+            font-size: 0.9em;
+        }
+
+        #stock-data-grid strong {
+            font-size: 0.8em;
+            color: rgb(124, 124, 124)
         }
 
         .success {
@@ -113,6 +132,8 @@
 
     <script src="chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 
 
@@ -121,6 +142,7 @@
         const isMobile = window.innerWidth <= 768;
         const isPortrait = window.innerWidth < window.innerHeight;
 
+        let stockChart;
 
         async function fetchStockData() {
 
@@ -128,31 +150,85 @@
             document.getElementById("loadingOverlay").style.display = "block";
 
             const symbol = document.getElementById("symbol").value;
-            const response = await fetch(`/api/stock/${symbol}`);
-            const data = await response.json();
-            console.log(data);
 
-            const currentPrice = data.regularMarketPrice;
-            const previousClosePrice = data.regularMarketPreviousClose;
-            const changeInPrice = currentPrice - previousClosePrice;
-            const percentageChange = (changeInPrice / previousClosePrice) * 100;
+            try {
+                const response = await fetch(`/api/stock/${symbol}`);
+                const data = await response.json();
+                console.log(data);
 
-            const changeClass = changeInPrice >= 0 ? 'success' : 'danger';
+                const currentPrice = data.regularMarketPrice;
+                const previousClosePrice = data.regularMarketPreviousClose;
+                const changeInPrice = currentPrice - previousClosePrice;
+                const percentageChange = (changeInPrice / previousClosePrice) * 100;
+                const earningsDateTimeString = data.earningsDateTimeString;
+                const earningsDateTimeStringUTC4 = moment(earningsDateTimeString)
+                    .utcOffset(-4)
+                    .format('D. MMM. [at] H.mm [UTC-4]');
+                const earningsDateTimeStringFinnishTime = moment(earningsDateTimeString)
+                    .tz("Europe/Helsinki")
+                    .format('D. MMM. [at] H.mm');
 
-            // Display some of the data
-            document.getElementById("stockData").innerHTML = `
-                <h2>${data.shortName} (${data.symbol})</h2>
+                if (currentPrice === undefined) {
+                    alert(`There might be a problem with ${symbol}, try again...`);
+                }
+
+                const changeClass = changeInPrice >= 0 ? 'success' : 'danger';
+
+                // Display some of the data
+
+                document.getElementById("stockData").innerHTML = `
+                <h2 id="stock-symbol-title">${data.shortName} (${data.symbol}) [${data.longName}]</h2>
                 <p ><span id="currPrice-label">Current Price:</span><br/> 
                     <span id="currPrice">${currentPrice} ${data.currency} </span>
                     <span id="changeInPrice" class="${changeClass}">
                         ${changeInPrice >= 0 ? '+' : ''}${changeInPrice.toFixed(2)} 
                         (${percentageChange >= 0 ? '+' : ''}${percentageChange.toFixed(2)}%)
                         </span>
+
+                    <br/><span id="priceSubText">${earningsDateTimeStringUTC4} (${earningsDateTimeStringFinnishTime})</span>
                 </p>
-                <p>Market Cap: ${data.marketCap}</p>
-                <p>52 Week Low: ${data.fiftyTwoWeekLow}</p>
-                <p>52 Week High: ${data.fiftyTwoWeekHigh}</p>
+                
             `;
+
+                document.getElementById("stockData2").innerHTML = `
+                    <div id="stock-data-grid" class="uk-grid-small uk-child-width-1-3" uk-grid>
+                        <div>
+                            <p>200 day average: <strong>${data.twoHundredDayAverage} ${data.currency}</strong></p>
+                        </div>
+                        <div>
+                            <p>52 Week Low: <strong>${data.fiftyTwoWeekLow}</strong></p>
+                        </div>
+                        <div>
+                            <p>52 Week High: <strong>${data.fiftyTwoWeekHigh}</strong></p>
+                        </div>
+                        <!-- second column -->
+                        <div>
+                            <p>52 Week change: <strong>${data.fiftyTwoWeekChangePercent}%</strong></p>
+                        </div>
+                        <div>
+                            <p>Market Cap: <strong>${data.marketCap}</strong></p>
+                        </div>
+                        <div>
+                            <p>Trailing P/E: <strong>${data.trailingPE}</strong></p>
+                        </div>
+                        <!-- third column -->
+                        <div>
+                            <p>Avg. Analyst Rating: <strong>${data.averageAnalystRating}</strong></p>
+                        </div>
+                        <div>
+                            <p>Exchange: <strong>${data.exchange} - ${data.exchangeTimezoneName}</strong></p>
+                        </div>
+                        <div>
+                            <p>Full exchange name: <strong>${data.fullExchangeName}</strong></p>
+                        </div>
+                    </div>
+                `;
+
+            }
+            catch {
+                alert(`NO Stock data found of ${symbol}`);
+            }
+
 
             // Hide loading overlay
             document.getElementById("loadingOverlay").style.display = "none";
@@ -178,6 +254,15 @@
             const symbol = document.getElementById("symbol").value;
             const ctx = document.getElementById('stockChart').getContext('2d');
 
+            // Create a gradient fill
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400); // Adjust the gradient size according to your chart dimensions
+            gradient.addColorStop(0, 'rgba(255, 0, 0, 0.5)'); // Top color with opacity
+            gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+            if (stockChart) {
+                stockChart.destroy();
+            }
+
             // Filter the data to include fewer points if on mobile
             const filteredData = (isMobile && isPortrait) ? data.filter((_, index) => index % 2 === 0) : data;
             const filteredLabels = (isMobile && isPortrait) ? labels.filter((_, index) => index % 2 === 0) : labels;
@@ -185,7 +270,7 @@
             if (isMobile && isPortrait) {
                 ctx.canvas.height = 400;  // Set to desired height
             }
-            const myChart = new Chart(ctx, {
+            stockChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: filteredLabels.map(label => moment(label)), // Convert to Moment.js objects
@@ -194,11 +279,12 @@
                         data: filteredData,
                         tension: 0.3,
                         borderColor: 'rgba(255, 0, 0, 1)',
-                        borderWidth: 9,
-                        pointRadius: 2,
+                        borderWidth: 2,
+                        pointRadius: 5,
                         pointBackgroundColor: 'rgba(0, 0, 0, 1)',
                         pointBorderColor: 'rgba(255, 255, 255, 1)',
-                        fill: false
+                        fill: true,
+                        backgroundColor: gradient
                     }]
                 },
                 options: {
@@ -220,9 +306,8 @@
             });
         }
 
-        // Fetch default stock data when the page loads
-        window.onload = function () {
 
+        function loadStockDataAndUpdateGraph() {
             fetchStockData().then(() => {
                 const symbol = document.getElementById("symbol").value;
                 fetch(`/api/historical/${symbol}`)
@@ -236,6 +321,11 @@
                         console.error('Error fetching historical data:', error);
                     });
             });
+        }
+
+        // Fetch default stock data when the page loads
+        window.onload = function () {
+            loadStockDataAndUpdateGraph();
         }
 
 
@@ -253,15 +343,7 @@
 
         <h1>Stock Check</h1>
 
-        <div class="uk-grid-small uk-child-width-auto uk-child-width-expand@m" uk-grid>
-            <div class="uk-width-2-3">
-                <input class="uk-input uk-width-1-1" type="text" id="symbol" placeholder="Enter stock symbol"
-                    value="GIB-A.TO">
-            </div>
-            <div class="uk-width-1-3">
-                <button class="uk-button uk-button-secondary uk-width-1-1" onclick="fetchStockData()">Fetch</button>
-            </div>
-        </div>
+
 
 
 
@@ -270,10 +352,22 @@
         <div id="chartContainer">
             <canvas id="stockChart" width="600" height="300"></canvas>
         </div>
+        <p>&nbsp;</p>
 
-
+        <div id="stockData2"></div>
 
         <p>&nbsp;</p>
+        <div class="uk-grid-small uk-child-width-auto uk-child-width-expand@m" uk-grid>
+            <div class="uk-width-2-3">
+                <input class="uk-input uk-width-1-1" type="text" id="symbol" placeholder="Enter stock symbol"
+                    value="GIB-A.TO">
+            </div>
+            <div class="uk-width-1-3">
+                <button class="uk-button uk-button-secondary uk-width-1-1"
+                    onclick="loadStockDataAndUpdateGraph()">Fetch</button>
+            </div>
+        </div>
+
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-1-1 uk-width-2-3@m">
                 <input class="uk-input uk-width-1-1" type="text" id="searchQuery" placeholder="Search stocks">
