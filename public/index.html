@@ -86,6 +86,10 @@
             margin-bottom: 0;
         }
 
+        #symbol-fullname {
+            font-size: 0.5em;
+        }
+
         #currPrice-label {
             font-size: 0.6em;
             margin-bottom: 0;
@@ -154,7 +158,7 @@
             try {
                 const response = await fetch(`/api/stock/${symbol}`);
                 const data = await response.json();
-                console.log(data);
+                //console.log(data);
 
                 const currentPrice = data.regularMarketPrice;
                 const previousClosePrice = data.regularMarketPreviousClose;
@@ -177,7 +181,7 @@
                 // Display some of the data
 
                 document.getElementById("stockData").innerHTML = `
-                <h2 id="stock-symbol-title">${data.shortName} (${data.symbol}) [${data.longName}]</h2>
+                <h2 id="stock-symbol-title">${data.shortName} (${data.symbol}) <span id="symbol-fullname">[${data.longName}]</span></h2>
                 <p ><span id="currPrice-label">Current Price:</span><br/> 
                     <span id="currPrice">${currentPrice} ${data.currency} </span>
                     <span id="changeInPrice" class="${changeClass}">
