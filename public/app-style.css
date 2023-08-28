@@ -1,0 +1,113 @@
+body {
+    background-color: rgb(224, 224, 224);
+    height: 100%;
+    min-height: 100vh;
+    margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: 'ADLaM Display', cursive;
+}
+
+p {
+    font-family: 'Lato', sans-serif;
+}
+
+/* Loading overlay styles */
+#loadingOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#loadingOverlay img {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#mainContainer {
+    max-width: 800px;
+    margin: auto;
+}
+
+
+#chartContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 800px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+#stockChart {
+    max-width: 100%;
+}
+
+#stockData {
+    margin-top: 1.2em;
+}
+
+#stock-symbol-title {
+    margin-bottom: 0;
+}
+
+#symbol-fullname {
+    font-size: 0.5em;
+}
+
+#currPrice-label {
+    font-size: 0.6em;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+#currPrice {
+    color: red;
+    font-weight: 900;
+    font-size: 1.5em;
+}
+
+#changeInPrice {
+    font-weight: 400;
+}
+
+#priceSubText {
+    font-size: 0.7em;
+    top: -12px;
+    position: relative;
+}
+
+#stock-data-grid {
+    font-size: 0.9em;
+}
+
+#stock-data-grid strong {
+    font-size: 0.8em;
+    color: rgb(124, 124, 124)
+}
+
+.success {
+    color: #36cf45;
+}
+
+.warning {
+    color: #ed7b11;
+}
+
+.danger {
+    color: #d62020;
+}

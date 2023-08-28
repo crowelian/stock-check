@@ -3,9 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Stock Data</title>
+    <title>Stock-Check</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+
     <link rel="stylesheet" href="css/uikit.min.css" />
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
@@ -18,121 +20,7 @@
 
 
 
-    <style>
-        body {
-            background-color: rgb(224, 224, 224);
-            height: 100%;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        h1,
-        h2,
-        h3,
-        h4 {
-            font-family: 'ADLaM Display', cursive;
-        }
-
-        p {
-            font-family: 'Lato', sans-serif;
-        }
-
-        /* Loading overlay styles */
-        #loadingOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        #loadingOverlay img {
-            position: relative;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        #mainContainer {
-            max-width: 800px;
-            margin: auto;
-        }
-
-
-        #chartContainer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 800px;
-            max-width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-
-        #stockChart {
-            max-width: 100%;
-        }
-
-        #stockData {
-            margin-top: 1.2em;
-        }
-
-        #stock-symbol-title {
-            margin-bottom: 0;
-        }
-
-        #symbol-fullname {
-            font-size: 0.5em;
-        }
-
-        #currPrice-label {
-            font-size: 0.6em;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        #currPrice {
-            color: red;
-            font-weight: 900;
-            font-size: 1.5em;
-        }
-
-        #changeInPrice {
-            font-weight: 400;
-        }
-
-        #priceSubText {
-            font-size: 0.7em;
-            top: -12px;
-            position: relative;
-        }
-
-        #stock-data-grid {
-            font-size: 0.9em;
-        }
-
-        #stock-data-grid strong {
-            font-size: 0.8em;
-            color: rgb(124, 124, 124)
-        }
-
-        .success {
-            color: #36cf45;
-        }
-
-        .warning {
-            color: #ed7b11;
-        }
-
-        .danger {
-            color: #d62020;
-        }
-    </style>
+    <link rel="stylesheet" href="./app-style.css">
 
     <script src="chart.js"></script>
     <!-- https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js -->
@@ -261,7 +149,7 @@
             const ctx = document.getElementById('stockChart').getContext('2d');
 
             // Create a gradient fill
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400); // Adjust the gradient size according to your chart dimensions
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300); // Adjust the gradient size according to your chart dimensions
             gradient.addColorStop(0, 'rgba(255, 0, 0, 0.5)'); // Top color with opacity
             gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
 
@@ -347,7 +235,7 @@
     <div id="mainContainer" class="uk-container">
 
 
-        <h1>Stock Check</h1>
+        <h1>Stock-Check</h1>
 
 
 
